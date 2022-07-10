@@ -13,15 +13,15 @@ class AbstractBoard(metaclass=ABCMeta):
         return NotImplemented(self.__class__.__name__ + '.get_other_player')
 
     @abstractmethod
-    def push(self, move) -> None:
+    def play_move(self, move) -> None:
         return NotImplemented(self.__class__.__name__ + '.push')
 
     @abstractmethod
-    def pop(self, amount: int) -> None:
+    def reset(self) -> None:
         return NotImplemented(self.__class__.__name__ + '.pop')
 
     @abstractmethod
-    def get_result(self, player) -> float:
+    def get_score(self, player) -> float:
         return NotImplemented(self.__class__.__name__ + '.get_result')
 
     @abstractmethod
