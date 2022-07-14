@@ -1,18 +1,87 @@
+from array import ArrayType
 from math import sqrt
+
 from abstract_board import AbstractBoard
 from node import Node
+import pickle
 
 DEFAULT_C = sqrt(2)
 AMOUNT_SIMULATION = 5
 SIMULATE_ALL_CHILDREN = True
+DEFAULT_SAVE_PATH = "save.pkl"
 
 
 class MCTS:
 
-    def __init__(self, board: AbstractBoard, player, c: float = DEFAULT_C) -> None:
-        self._root_node: Node = Node(None, None, player, board, c)
+    def __init__(self, board: AbstractBoard, c: float = DEFAULT_C) -> None:
+        self._root_node: Node = None
+        self._initial_root_node: Node = None
         self._c = c
         self._board = board
+        self._define_initial_nodes()
+
+    def _define_initial_nodes(self):
+        initial_moves = self._board.get_previous_moves()
+        node = Node(None, None, None, self._board, self._c)
+        self._initial_root_node: Node = node
+        self._board.reset()
+        for move in initial_moves:
+            player = self._board.get_actual_player()
+            node = Node(move, node, player, self._board, self._c)
+        self._root_node = node
+
+    def save(self, path: str = DEFAULT_SAVE_PATH) -> None:
+        """
+        Save the actual mcts tree into a binary filed (to be loaded after)
+        :param path: The path of the saved file
+        """
+        with open(path, "wb") as file:
+            pickle.dump(self._initial_root_node, file)
+        print("MCTS tree saved !")
+
+    def load(self, path: str = DEFAULT_SAVE_PATH) -> None:
+        """
+        Load a mcts tree. The first player need to be the same to me loaded
+        :param path: Path of saved file
+        """
+        with open(path, "rb") as file:
+            saved_root_node: Node = pickle.load(file)
+        moves = self._board.get_previous_moves()
+        can_continue = True
+        node = saved_root_node
+
+        # Saving actual moves in case if we can't load the saved tree
+        actual_moves = self._board.get_previous_moves()
+        self._board.reset()
+
+        while len(moves) > 0 and can_continue:
+            move = moves.pop()
+            self._board.play_move(move)
+            children: ArrayType[Node] = node.children
+            found_node: Node | None = None
+            while len(children) > 0 and found_node is None:
+                child: Node = children.pop()
+                if child.move == move:
+                    found_node = child
+            can_continue = found_node is None
+            if can_continue:
+                node = found_node
+        if not can_continue and node == saved_root_node:
+            # No one of the first saved node children correspond to our first move
+            # ==> Not the same game
+            self._board.reset()
+            self._board.play_moves(actual_moves)
+            print('Unable to load the saved tree, maybe the first player is not the same.')
+        while len(moves) > 0:
+            # The beginning of the game is the same as the saved tree but
+            # at a moment, following nodes are unknown
+            move = moves.pop()
+            self._board.play_move(move)
+            player = self._board.get_actual_player()
+            node = Node(move, node, player, self._board, self._c)
+        self._initial_root_node = saved_root_node
+        self._root_node = node
+        print('Tree loaded without issue.')
 
     def learn(self, amount_learns: int = 1, amount_simulations: int = AMOUNT_SIMULATION) -> None:
         """
@@ -71,3 +140,4 @@ class MCTS:
                 self._root_node = node
                 return
         raise Exception('Opponent played an unknown move while children has been visited')
+

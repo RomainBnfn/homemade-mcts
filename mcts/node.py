@@ -63,7 +63,8 @@ class Node:
         node = self
         while node.has_parent:
             node = node._parent_node
-            moves.insert(0, node.move)
+            if node.move is not None:
+                moves.insert(0, node.move)
         for move in moves:
             self._board.play_move(move)
 
