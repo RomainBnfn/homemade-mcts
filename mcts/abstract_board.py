@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from array import ArrayType
+from typing import Any
 
 import numpy as np
 
@@ -37,9 +37,9 @@ class AbstractBoard(metaclass=ABCMeta):
         return NotImplemented(self.__class__.__name__ + '.is_finished')
 
     @abstractmethod
-    def get_previous_moves(self) -> ArrayType:
+    def get_previous_moves(self) -> list[Any]:
         return NotImplemented(self.__class__.__name__ + '.get_previous_moves')
 
-    def play_moves(self, moves: ArrayType):
+    def play_moves(self, moves: list[Any]):
         for move in moves:
             self.play_move(move)
