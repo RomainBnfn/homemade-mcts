@@ -1,4 +1,6 @@
 from abc import ABCMeta, abstractmethod
+from typing import Any
+
 import numpy as np
 
 
@@ -7,6 +9,10 @@ class AbstractBoard(metaclass=ABCMeta):
     @abstractmethod
     def get_possible_moves(self) -> np.ndarray:
         return NotImplemented(self.__class__.__name__ + '.get_possible_moves')
+
+    @abstractmethod
+    def get_actual_player(self):
+        return NotImplemented(self.__class__.__name__ + '.get_actual_player')
 
     @abstractmethod
     def get_next_player(self, player):
@@ -22,13 +28,18 @@ class AbstractBoard(metaclass=ABCMeta):
 
     @abstractmethod
     def get_score(self, player) -> float:
+        """Score needs to be inside [0,1]"""
         return NotImplemented(self.__class__.__name__ + '.get_result')
-
-    @abstractmethod
-    def get_last_move(self):
-        return NotImplemented(self.__class__.__name__ + '.get_last_move')
 
     @abstractmethod
     @property
     def is_finished(self) -> bool:
         return NotImplemented(self.__class__.__name__ + '.is_finished')
+
+    @abstractmethod
+    def get_previous_moves(self) -> list[Any]:
+        return NotImplemented(self.__class__.__name__ + '.get_previous_moves')
+
+    def play_moves(self, moves: list[Any]):
+        for move in moves:
+            self.play_move(move)
